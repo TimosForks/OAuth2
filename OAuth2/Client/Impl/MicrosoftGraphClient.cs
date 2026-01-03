@@ -2,6 +2,7 @@ using Newtonsoft.Json.Linq;
 using OAuth2.Configuration;
 using OAuth2.Infrastructure;
 using OAuth2.Models;
+using RestSharp.Authenticators;
 
 namespace OAuth2.Client.Impl
 {
@@ -71,7 +72,9 @@ namespace OAuth2.Client.Impl
         /// </summary>
         protected override void BeforeGetUserInfo(BeforeAfterRequestArgs args)
         {
-            args.Request.AddParameter("access_token", AccessToken);
+            //args.Request.AddParameter("access_token", AccessToken);
+            args.Client.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(
+                AccessToken, "Bearer");
         }
 
 
@@ -100,14 +103,14 @@ namespace OAuth2.Client.Impl
             var userinfo =  new UserInfo
             {
                 Id = response["id"].Value<string>(),
-                FirstName = response["first_name"].Value<string>(),
-                LastName = response["last_name"].Value<string>(),
-                AvatarUri =
+                FirstName = response["givenName"].Value<string>(),
+                LastName = response["surname"].Value<string>(),
+                /*AvatarUri =
                     {
                         Small = string.Format(avatarUriTemplate, response["id"].Value<string>(), "UserTileSmall"),
                         Normal = string.Format(avatarUriTemplate, response["id"].Value<string>(), "UserTileSmall"),
                         Large = string.Format(avatarUriTemplate, response["id"].Value<string>(), "UserTileLarge")
-                    }
+                    }*/
             };
 
             if (Configuration.Scope != null && Configuration.Scope.ToUpperInvariant().Contains("WL.EMAILS"))
