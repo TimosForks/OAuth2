@@ -74,6 +74,21 @@ namespace OAuth2.Client.Impl
             args.Request.AddParameter("access_token", AccessToken);
         }
 
+
+        protected override void BeforeGetAccessToken(BeforeAfterRequestArgs args)
+        {
+            base.BeforeGetAccessToken(args);
+            if (args.Parameters.Get("code") != null)
+            {
+                args.Request.AddHeader("scope", "User.Read");
+            }
+            else
+            {
+                args.Request.AddHeader("scope", "User.Read");
+            }
+        }
+        
+
         /// <summary>
         /// Should return parsed <see cref="UserInfo"/> from content received from third-party service.
         /// </summary>
