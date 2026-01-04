@@ -72,7 +72,6 @@ namespace OAuth2.Client.Impl
         /// </summary>
         protected override void BeforeGetUserInfo(BeforeAfterRequestArgs args)
         {
-            //args.Request.AddParameter("access_token", AccessToken);
             args.Client.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(
                 AccessToken, "Bearer");
         }
