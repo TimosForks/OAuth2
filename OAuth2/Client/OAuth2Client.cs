@@ -23,7 +23,7 @@ namespace OAuth2.Client
         private const string ExpiresKey = "expires_in";
         private const string TokenTypeKey = "token_type";
 
-        private readonly IRequestFactory _factory;
+        protected readonly IRequestFactory _factory;
 
         /// <summary>
         /// Client configuration object.
@@ -282,6 +282,12 @@ namespace OAuth2.Client
         {
         }
 
+        protected virtual IRestRequest _createGetUserInfoRequest()
+        {
+            var request = _factory.CreateRequest(UserInfoServiceEndpoint);
+            return request;
+        }
+
         /// <summary>
         /// Obtains user information using provider API.
         /// </summary>
@@ -290,7 +296,7 @@ namespace OAuth2.Client
         {
             var client = _factory.CreateClient(UserInfoServiceEndpoint);
             client.Authenticator = new OAuth2UriQueryParameterAuthenticator(AccessToken);
-            var request = _factory.CreateRequest(UserInfoServiceEndpoint);
+            var request = _createGetUserInfoRequest();
 
             BeforeGetUserInfo(new BeforeAfterRequestArgs
             {

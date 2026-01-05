@@ -1,6 +1,9 @@
+using Newtonsoft.Json.Linq;
 using OAuth2.Configuration;
 using OAuth2.Infrastructure;
 using OAuth2.Models;
+using RestSharp;
+using RestSharp.Authenticators;
 
 namespace OAuth2.Client.Impl
 {
@@ -30,6 +33,19 @@ namespace OAuth2.Client.Impl
             };
         }
         
+        
+        /// <summary>
+        /// Called just before issuing request to third-party service when everything is ready.
+        /// Allows to add extra parameters to request or do any other needed preparations.
+        /// </summary>
+        protected override void BeforeGetUserInfo(BeforeAfterRequestArgs args)
+        {
+            //args.Request.AddParameter("access_token", AccessToken);
+            args.Client.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(
+                AccessToken, "Bearer");
+        }
+        
+        
         /**
          * https://www.dropbox.com/developers/documentation/http/documentation#users-get_current_account
          */
@@ -41,10 +57,33 @@ namespace OAuth2.Client.Impl
                 Resource = "/2/users/get_current_account"
             };
         }
-        
+ 
+        protected override IRestRequest _createGetUserInfoRequest()
+        {
+            var request = _factory.CreateRequest(UserInfoServiceEndpoint, Method.POST);
+            return request;
+        }
+
+
         protected override UserInfo ParseUserInfo(string content)
         {
-            throw new System.NotImplementedException();
+            var response = JObject.Parse(content);
+            var userinfo =  new UserInfo
+            {
+                Id = response["account_id"].SafeGet(x => x.Value<string>()),
+                FirstName = response["name"]["given_name"].SafeGet(x => x.Value<string>()),
+                LastName = response["name"]["surname"].SafeGet(x => x.Value<string>()),
+                AvatarUri =
+                {
+                    Small = response["profile_photo_url"].SafeGet(x => x.Value<string>()),
+                    Normal = response["profile_photo_url"].SafeGet(x => x.Value<string>()),
+                    Large = response["profile_photo_url"].SafeGet(x => x.Value<string>())
+                }
+            };
+
+            userinfo.Email = response["email"].SafeGet(x => x.Value<string>());
+
+            return userinfo;
         }
     }
 }
