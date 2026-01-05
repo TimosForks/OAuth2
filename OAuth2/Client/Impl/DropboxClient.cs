@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using OAuth2.Configuration;
 using OAuth2.Infrastructure;
 using OAuth2.Models;
@@ -31,20 +32,7 @@ namespace OAuth2.Client.Impl
                 Resource = "/oauth2/token"
             };
         }
-        
-        
-        /// <summary>
-        /// Called just before issuing request to third-party service when everything is ready.
-        /// Allows to add extra parameters to request or do any other needed preparations.
-        /// </summary>
-        protected override void BeforeGetUserInfo(BeforeAfterRequestArgs args)
-        {
-            //args.Request.AddParameter("access_token", AccessToken);
-            args.Client.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(
-                AccessToken, "Bearer");
-        }
-        
-        
+
         /**
          * https://www.dropbox.com/developers/documentation/http/documentation#users-get_current_account
          */
