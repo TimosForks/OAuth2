@@ -40,5 +40,7 @@ namespace OAuth2.Configuration
         /// after authentication using third-party service).
         /// </summary>
         string RedirectUri { get; set; }
+        
+        bool IsOfflineToken { get; set; }
     }
 }

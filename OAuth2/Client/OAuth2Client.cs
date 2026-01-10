@@ -59,7 +59,7 @@ namespace OAuth2.Client
         /// Seconds till the token expires returned by provider. Can be used for further calls of provider API.
         /// </summary>
         public DateTime ExpiresAt { get; private set; }
-
+        
         private string GrantType { get; set; }
 
         /// <summary>
@@ -71,6 +71,11 @@ namespace OAuth2.Client
         {
             _factory = factory;
             Configuration = configuration;
+        }
+
+        protected virtual void FineTuneLoginRequest(IRestRequest request)
+        {
+            return;
         }
 
         /// <summary>
@@ -106,6 +111,8 @@ namespace OAuth2.Client
                     state
                 });
             }
+            FineTuneLoginRequest(request);
+            
             return Task.FromResult(client.BuildUri(request).ToString());
         }
 

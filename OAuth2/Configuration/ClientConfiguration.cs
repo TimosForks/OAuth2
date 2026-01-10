@@ -41,5 +41,10 @@
         /// after authentication using third-party service).
         /// </summary>
         public string RedirectUri { get; set; }
+        
+        /**
+         * Shall this be an offline token?
+         */
+        public bool IsOfflineToken { get; set; }
     }
 }

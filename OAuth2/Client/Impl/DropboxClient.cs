@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OAuth2.Configuration;
 using OAuth2.Infrastructure;
@@ -32,7 +34,7 @@ namespace OAuth2.Client.Impl
                 Resource = "/oauth2/token"
             };
         }
-
+        
         /**
          * https://www.dropbox.com/developers/documentation/http/documentation#users-get_current_account
          */
@@ -45,13 +47,11 @@ namespace OAuth2.Client.Impl
             };
         }
  
-        protected override IRestRequest _createGetUserInfoRequest()
+        protected override IRestRequest CreateUserInfoRequest(Endpoint endpoint)
         {
-            var request = _factory.CreateRequest(UserInfoServiceEndpoint, Method.POST);
-            return request;
+            return _factory.CreateRequest(UserInfoServiceEndpoint, Method.POST);
         }
-
-
+        
         
         /// <summary>
         /// Called just before issuing request to third-party service when everything is ready.
@@ -59,11 +59,21 @@ namespace OAuth2.Client.Impl
         /// </summary>
         protected override void BeforeGetUserInfo(BeforeAfterRequestArgs args)
         {
-            //args.Request.AddParameter("access_token", AccessToken);
             args.Client.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(
                 AccessToken, "Bearer");
         }
         
+        protected override void FineTuneLoginRequest(IRestRequest request)
+        {
+            base.FineTuneLoginRequest(request);
+            if (Configuration.IsOfflineToken)
+            {
+                request.AddObject(new
+                {
+                    token_access_type="offline"
+                });
+            }
+        }
         
         protected override UserInfo ParseUserInfo(string content)
         {
