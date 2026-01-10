@@ -30,7 +30,7 @@ namespace OAuth2.Client.Impl
         {
             get => new Endpoint()
             {
-                BaseUri = "https://www.dropbox.com",
+                BaseUri = "https://api.dropboxapi.com",
                 Resource = "/oauth2/token"
             };
         }
