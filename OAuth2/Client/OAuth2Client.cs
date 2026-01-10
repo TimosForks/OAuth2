@@ -289,7 +289,7 @@ namespace OAuth2.Client
         {
         }
 
-        protected virtual IRestRequest _createGetUserInfoRequest()
+        protected virtual IRestRequest CreateUserInfoRequest(Endpoint endpoint)
         {
             var request = _factory.CreateRequest(UserInfoServiceEndpoint);
             return request;
@@ -303,7 +303,7 @@ namespace OAuth2.Client
         {
             var client = _factory.CreateClient(UserInfoServiceEndpoint);
             client.Authenticator = new OAuth2UriQueryParameterAuthenticator(AccessToken);
-            var request = _createGetUserInfoRequest();
+            var request = CreateUserInfoRequest(UserInfoServiceEndpoint);
 
             BeforeGetUserInfo(new BeforeAfterRequestArgs
             {
