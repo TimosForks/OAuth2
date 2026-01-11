@@ -255,9 +255,6 @@ namespace OAuth2.Client
                 args.Request.AddObject(new
                 {
                     refresh_token = args.Parameters.GetOrThrowUnexpectedResponse("refresh_token"),
-                    client_id = Configuration.ClientId,
-                    client_secret = Configuration.ClientSecret,
-                    grant_type = GrantType
                 });
             }
             else
@@ -265,12 +262,21 @@ namespace OAuth2.Client
                 args.Request.AddObject(new
                 {
                     code = args.Parameters.GetOrThrowUnexpectedResponse("code"),
-                    client_id = Configuration.ClientId,
-                    client_secret = Configuration.ClientSecret,
                     redirect_uri = Configuration.RedirectUri,
-                    grant_type = GrantType
                 });
             }
+            if (!String.IsNullOrWhiteSpace(Configuration.ClientSecret))
+            {
+                args.Request.AddObject(new
+                {
+                    client_secret = Configuration.ClientSecret.Trim(),
+                });
+            }
+            args.Request.AddObject(new
+            {
+                client_id = Configuration.ClientId,
+                grant_type = GrantType
+            });
         }
 
         /// <summary>
