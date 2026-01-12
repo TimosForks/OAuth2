@@ -4,41 +4,36 @@ using OAuth2.Infrastructure;
 using OAuth2.Models;
 using RestSharp;
 using RestSharp.Authenticators;
+using System;
+using System.Security.Cryptography;
+using System.Text;
+
 
 namespace OAuth2.Client.Impl
 {
-    
-    using System;
-    using System.Security.Cryptography;
-    using System.Text;
-
     public static class PkceHelper
     {
         /// <summary>
-        /// Generates a PKCE code_verifier and code_challenge pair.
+        /// Generates a PKCE code_verifier and code_challenge pair from a provided Guid.
         /// </summary>
-        public static (string CodeVerifier, string CodeChallenge) GeneratePkcePair()
+        public static (string CodeVerifier, string CodeChallenge) GeneratePkcePair(Guid guid)
         {
-            string codeVerifier = GenerateCodeVerifier();
+            string codeVerifier = GenerateCodeVerifier(guid);
             string codeChallenge = GenerateCodeChallenge(codeVerifier);
             return (codeVerifier, codeChallenge);
         }
 
         /// <summary>
-        /// Generates a high-entropy code_verifier (RFC 7636).
-        /// Length: 43–128 chars.
+        /// Creates a PKCE-compliant verifier from a Guid.
+        /// A single GUID (32 chars) is too short, so we concatenate two copies.
         /// </summary>
-        private static string GenerateCodeVerifier()
+        private static string GenerateCodeVerifier(Guid guid)
         {
-            // 32 bytes → 43 Base64URL chars
-            byte[] randomBytes = new byte[32];
-            using (var rng = RandomNumberGenerator.Create()) { rng.GetBytes(randomBytes); }
-            return Base64UrlEncode(randomBytes);
+            // Guid in "N" format = 32 chars, so doubling gives 64 chars (valid PKCE length)
+            string baseString = guid.ToString("N");
+            return baseString + baseString;
         }
 
-        /// <summary>
-        /// Computes the S256 code_challenge from a code_verifier.
-        /// </summary>
         private static string GenerateCodeChallenge(string codeVerifier)
         {
             using (var sha256 = SHA256.Create())
@@ -48,9 +43,6 @@ namespace OAuth2.Client.Impl
             }
         }
 
-        /// <summary>
-        /// Base64URL encoding (RFC 4648 §5).
-        /// </summary>
         private static string Base64UrlEncode(byte[] bytes)
         {
             return Convert.ToBase64String(bytes)
@@ -185,7 +177,7 @@ namespace OAuth2.Client.Impl
         {
             base.FineTuneLoginRequest(request);
             
-            (_codeVerifier, _codeChallenge) = PkceHelper.GeneratePkcePair();
+            (_codeVerifier, _codeChallenge) = PkceHelper.GeneratePkcePair(_stateId);
             request.AddObject(new
             {
                 code_challenge = _codeChallenge,
