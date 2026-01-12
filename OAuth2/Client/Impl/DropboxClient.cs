@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -11,7 +12,7 @@ namespace OAuth2.Client.Impl
 {
     public class DropboxClient : OAuth2Client
     {
-        public DropboxClient(IRequestFactory factory, IClientConfiguration configuration) : base(factory, configuration)
+        public DropboxClient(Guid stateId, IRequestFactory factory, IClientConfiguration configuration) : base(stateId, factory, configuration)
         {
         }
 

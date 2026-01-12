@@ -24,6 +24,7 @@ namespace OAuth2.Client
         private const string TokenTypeKey = "token_type";
 
         protected readonly IRequestFactory _factory;
+        protected readonly Guid _stateId;
 
         /// <summary>
         /// Client configuration object.
@@ -67,8 +68,9 @@ namespace OAuth2.Client
         /// </summary>
         /// <param name="factory">The factory.</param>
         /// <param name="configuration">The configuration.</param>
-        protected OAuth2Client(IRequestFactory factory, IClientConfiguration configuration)
+        protected OAuth2Client(Guid stateId, IRequestFactory factory, IClientConfiguration configuration)
         {
+            _stateId = stateId;
             _factory = factory;
             Configuration = configuration;
         }

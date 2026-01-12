@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OAuth2.Configuration;
 using OAuth2.Infrastructure;
@@ -76,8 +74,10 @@ namespace OAuth2.Client.Impl
         /// </summary>
         /// <param name="factory">The factory.</param>
         /// <param name="configuration">The configuration.</param>
-        public MicrosoftGraphClient(IRequestFactory factory, IClientConfiguration configuration)
-            : base(factory, configuration)
+        public MicrosoftGraphClient(
+            Guid stateId,
+            IRequestFactory factory, IClientConfiguration configuration)
+            : base(stateId, factory, configuration)
         {
         }
 
@@ -143,7 +143,6 @@ namespace OAuth2.Client.Impl
             if (args.Parameters.Get("code") != null)
             {
                 args.Request.AddHeader("scope", "User.Read");
-                args.Request.AddHeader("code_verifier", _codeVerifier);
             }
             else
             {
