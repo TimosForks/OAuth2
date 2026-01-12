@@ -1,16 +1,76 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OAuth2.Configuration;
 using OAuth2.Infrastructure;
 using OAuth2.Models;
+using RestSharp;
 using RestSharp.Authenticators;
 
 namespace OAuth2.Client.Impl
 {
+    
+    using System;
+    using System.Security.Cryptography;
+    using System.Text;
+
+    public static class PkceHelper
+    {
+        /// <summary>
+        /// Generates a PKCE code_verifier and code_challenge pair.
+        /// </summary>
+        public static (string CodeVerifier, string CodeChallenge) GeneratePkcePair()
+        {
+            string codeVerifier = GenerateCodeVerifier();
+            string codeChallenge = GenerateCodeChallenge(codeVerifier);
+            return (codeVerifier, codeChallenge);
+        }
+
+        /// <summary>
+        /// Generates a high-entropy code_verifier (RFC 7636).
+        /// Length: 43–128 chars.
+        /// </summary>
+        private static string GenerateCodeVerifier()
+        {
+            // 32 bytes → 43 Base64URL chars
+            byte[] randomBytes = new byte[32];
+            using (var rng = RandomNumberGenerator.Create()) { rng.GetBytes(randomBytes); }
+            return Base64UrlEncode(randomBytes);
+        }
+
+        /// <summary>
+        /// Computes the S256 code_challenge from a code_verifier.
+        /// </summary>
+        private static string GenerateCodeChallenge(string codeVerifier)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                byte[] hash = sha256.ComputeHash(Encoding.ASCII.GetBytes(codeVerifier));
+                return Base64UrlEncode(hash);
+            }
+        }
+
+        /// <summary>
+        /// Base64URL encoding (RFC 4648 §5).
+        /// </summary>
+        private static string Base64UrlEncode(byte[] bytes)
+        {
+            return Convert.ToBase64String(bytes)
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
+        }
+    }
+
+    
     /// <summary>
     /// Windows Live authentication client.
     /// </summary>
     public class MicrosoftGraphClient : OAuth2Client
     {
+        private string _codeVerifier;
+        private string _codeChallenge;
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="MicrosoftGraphClient"/> class.
         /// </summary>
@@ -83,6 +143,7 @@ namespace OAuth2.Client.Impl
             if (args.Parameters.Get("code") != null)
             {
                 args.Request.AddHeader("scope", "User.Read");
+                args.Request.AddHeader("code_verifier", _codeVerifier);
             }
             else
             {
@@ -119,6 +180,20 @@ namespace OAuth2.Client.Impl
 
             return userinfo;
         }
+
+        
+        protected override void FineTuneLoginRequest(IRestRequest request)
+        {
+            base.FineTuneLoginRequest(request);
+            
+            (_codeVerifier, _codeChallenge) = PkceHelper.GeneratePkcePair();
+            request.AddObject(new
+            {
+                code_challenge = _codeChallenge,
+                code_challenge_method = "S256"
+            });
+        }
+        
 
         public override string Name
         {
