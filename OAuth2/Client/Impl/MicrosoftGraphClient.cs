@@ -135,11 +135,14 @@ namespace OAuth2.Client.Impl
             base.BeforeGetAccessToken(args);
             if (args.Parameters.Get("code") != null)
             {
-                args.Request.AddHeader("scope", "User.Read");
-                args.Request.AddObject(new { code_verifier = _codeVerifier });            }
+                args.Request.AddObject(new
+                {
+                    code_verifier = _codeVerifier, 
+                    scope = Configuration.Scope
+                });            }
             else
             {
-                args.Request.AddHeader("scope", "User.Read");
+                args.Request.AddObject(new {scope = Configuration.Scope});
             }
         }
         
