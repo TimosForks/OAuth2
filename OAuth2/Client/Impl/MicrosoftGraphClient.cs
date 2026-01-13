@@ -136,8 +136,7 @@ namespace OAuth2.Client.Impl
             if (args.Parameters.Get("code") != null)
             {
                 args.Request.AddHeader("scope", "User.Read");
-                args.Request.AddHeader("code_verifier", _codeVerifier);
-            }
+                args.Request.AddObject(new { code_verifier = _codeVerifier });            }
             else
             {
                 args.Request.AddHeader("scope", "User.Read");
