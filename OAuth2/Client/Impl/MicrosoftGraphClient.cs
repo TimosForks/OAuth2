@@ -71,6 +71,7 @@ namespace OAuth2.Client.Impl
             IRequestFactory factory, IClientConfiguration configuration)
             : base(stateId, factory, configuration)
         {
+            (_codeVerifier, _codeChallenge) = PkceHelper.GeneratePkcePair(_stateId);
         }
 
         /// <summary>
@@ -135,6 +136,7 @@ namespace OAuth2.Client.Impl
             if (args.Parameters.Get("code") != null)
             {
                 args.Request.AddHeader("scope", "User.Read");
+                args.Request.AddHeader("code_verifier", _codeVerifier);
             }
             else
             {
@@ -177,7 +179,6 @@ namespace OAuth2.Client.Impl
         {
             base.FineTuneLoginRequest(request);
             
-            (_codeVerifier, _codeChallenge) = PkceHelper.GeneratePkcePair(_stateId);
             request.AddObject(new
             {
                 code_challenge = _codeChallenge,
