@@ -139,7 +139,8 @@ namespace OAuth2.Client.Impl
                 {
                     code_verifier = _codeVerifier, 
                     scope = Configuration.Scope
-                });            }
+                });            
+            }
             else
             {
                 args.Request.AddObject(new {scope = Configuration.Scope});
