@@ -60,6 +60,8 @@ namespace OAuth2.Client.Impl
     {
         private string _codeVerifier;
         private string _codeChallenge;
+
+        private bool _usePkce = false;
         
         /// <summary>
         /// Initializes a new instance of the <see cref="MicrosoftGraphClient"/> class.
@@ -71,7 +73,10 @@ namespace OAuth2.Client.Impl
             IRequestFactory factory, IClientConfiguration configuration)
             : base(stateId, factory, configuration)
         {
-            (_codeVerifier, _codeChallenge) = PkceHelper.GeneratePkcePair(_stateId);
+            if (_usePkce)
+            {
+                (_codeVerifier, _codeChallenge) = PkceHelper.GeneratePkcePair(_stateId);
+            }
         }
 
         /// <summary>
@@ -85,6 +90,7 @@ namespace OAuth2.Client.Impl
                 {
                     BaseUri = "https://login.microsoftonline.com",
                     Resource = "/consumers/oauth2/v2.0/authorize"
+                    //Resource = "/common/oauth2/v2.0/authorize"
                 };
             }
         }
@@ -100,6 +106,7 @@ namespace OAuth2.Client.Impl
                 {
                     BaseUri = "https://login.microsoftonline.com",
                     Resource = "/consumers/oauth2/v2.0/token"
+                    //Resource = "/common/oauth2/v2.0/token"
                 };
             }
         }
@@ -135,9 +142,18 @@ namespace OAuth2.Client.Impl
             base.BeforeGetAccessToken(args);
             if (args.Parameters.Get("code") != null)
             {
+                if (_usePkce)
+                {
+                    args.Request.AddObject(new
+                    {
+                        code_verifier = _codeVerifier, 
+                    });            
+                }
+                else
+                {
+                }
                 args.Request.AddObject(new
                 {
-                    code_verifier = _codeVerifier, 
                     scope = Configuration.Scope
                 });            
             }
@@ -181,12 +197,15 @@ namespace OAuth2.Client.Impl
         protected override void FineTuneLoginRequest(IRestRequest request)
         {
             base.FineTuneLoginRequest(request);
-            
-            request.AddObject(new
+
+            if (_usePkce)
             {
-                code_challenge = _codeChallenge,
-                code_challenge_method = "S256"
-            });
+                request.AddObject(new
+                {
+                    code_challenge = _codeChallenge,
+                    code_challenge_method = "S256"
+                });
+            }
         }
         
 
