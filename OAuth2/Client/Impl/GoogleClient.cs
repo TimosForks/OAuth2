@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json.Linq;
 using OAuth2.Configuration;
 using OAuth2.Infrastructure;
@@ -13,10 +14,11 @@ namespace OAuth2.Client.Impl
         /// <summary>
         /// Initializes a new instance of the <see cref="GoogleClient"/> class.
         /// </summary>
+        /// <param name="stateId">The state identifier.</param>
         /// <param name="factory">The factory.</param>
         /// <param name="configuration">The configuration.</param>
-        public GoogleClient(IRequestFactory factory, IClientConfiguration configuration)
-            : base(factory, configuration)
+        public GoogleClient(Guid stateId, IRequestFactory factory, IClientConfiguration configuration)
+            : base(stateId, factory, configuration)
         {
         }
 
