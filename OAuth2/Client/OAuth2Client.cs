@@ -209,14 +209,7 @@ namespace OAuth2.Client
                 Parameters = parameters,
                 Configuration = Configuration
             });
-            
-            // === ADD THIS LOGGING ===
-            System.Diagnostics.Debug.WriteLine("=== TOKEN EXCHANGE REQUEST ===");
-            foreach (var param in request.Parameters)
-            {
-                System.Diagnostics.Debug.WriteLine($"  {param.Name} = {param.Value}");
-            }
-            System.Diagnostics.Debug.WriteLine("=== END REQUEST ===");
+
             var response = await client.ExecuteAndVerifyAsync(request, cancellationToken).ConfigureAwait(false);
 
             AfterGetAccessToken(new BeforeAfterRequestArgs
