@@ -172,11 +172,16 @@ namespace OAuth2.Client.Impl
         {
             var response = JObject.Parse(content);
             const string avatarUriTemplate = @"https://cid-{0}.users.storage.live.com/users/0x{0}/myprofile/expressionprofile/profilephoto:Win8Static,{1},UserTileStatic/MeControlXXLUserTile?ck=2&ex=24";
+
+            // Personal Microsoft accounts (MSA) may omit "givenName" and/or "surname" entirely,
+            // so every property has to be read defensively - see SafeGet, which yields null
+            // instead of throwing when the token is absent.
+            var displayName = response["displayName"].SafeGet(x => x.Value<string>());
             var userinfo =  new UserInfo
             {
-                Id = response["id"].Value<string>(),
-                FirstName = response["givenName"].Value<string>(),
-                LastName = response["surname"].Value<string>(),
+                Id = response["id"].SafeGet(x => x.Value<string>()) ?? string.Empty,
+                FirstName = response["givenName"].SafeGet(x => x.Value<string>()) ?? displayName ?? string.Empty,
+                LastName = response["surname"].SafeGet(x => x.Value<string>()) ?? string.Empty,
                 /*AvatarUri =
                     {
                         Small = string.Format(avatarUriTemplate, response["id"].Value<string>(), "UserTileSmall"),
@@ -187,7 +192,18 @@ namespace OAuth2.Client.Impl
 
             if (Configuration.Scope != null && Configuration.Scope.ToUpperInvariant().Contains("WL.EMAILS"))
             {
-                userinfo.Email = response["emails"]["preferred"].SafeGet(x => x.Value<string>());
+                // "emails" is a legacy Windows Live shape and is normally absent on Graph, so the
+                // intermediate token has to be guarded as well before indexing into it.
+                userinfo.Email = response["emails"].SafeGet(x => x["preferred"]).SafeGet(x => x.Value<string>());
+            }
+
+            // Graph reports the address as "mail", which is frequently null on MSA accounts;
+            // "userPrincipalName" is the usual fallback there.
+            if (string.IsNullOrEmpty(userinfo.Email))
+            {
+                userinfo.Email = response["mail"].SafeGet(x => x.Value<string>())
+                    ?? response["userPrincipalName"].SafeGet(x => x.Value<string>())
+                    ?? string.Empty;
             }
 
             return userinfo;
